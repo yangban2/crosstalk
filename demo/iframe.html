@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>body { font: 13px/1.4 system-ui, sans-serif; padding: 8px; }</style>
+  </head>
+  <body>
+    <b>iframe</b> — replies to host messages with a matching nonce.
+    <pre id="log"></pre>
+    <script>
+      const log = (m) => (document.getElementById("log").textContent += m + "\n");
+      window.addEventListener("message", (e) => {
+        const d = e.data;
+        if (!d || !d.type) return;
+        log("← " + d.type);
+        // Reply with a result echoing the nonce (request/response pairing demo).
+        const reply = {
+          HOST_COMMAND: { type: "FRAME_RESULT", payload: { width: 1080, height: 1920 } },
+          SET_THEME: { type: "THEME_APPLIED", payload: { theme: "dark" } },
+          PING: { type: "PONG", payload: { ok: true } },
+        }[d.type];
+        if (reply) {
+          reply.nonce = d.nonce;
+          reply.timestamp = Date.now();
+          parent.postMessage(reply, "*");
+          log("→ " + reply.type);
+        }
+      });
+    </script>
+  </body>
+</html>

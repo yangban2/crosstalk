@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Crosstalk demo — host</title>
+    <style>
+      body { font: 14px/1.5 system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; }
+      button { font: inherit; padding: 6px 12px; margin: 2px; cursor: pointer; }
+      iframe { width: 100%; height: 160px; border: 1px solid #ccc; margin-top: 12px; }
+      pre { background: #1112; padding: 8px; border-radius: 6px; max-height: 160px; overflow: auto; }
+      .row { margin: 8px 0; }
+    </style>
+  </head>
+  <body>
+    <h1>Crosstalk demo — host page</h1>
+    <p>Open DevTools → <b>Crosstalk</b> panel, then click the buttons. No backend required for postMessage.</p>
+
+    <div class="row">
+      <b>postMessage → iframe</b><br />
+      <button data-pm="HOST_COMMAND">HOST_COMMAND</button>
+      <button data-pm="SET_THEME">SET_THEME</button>
+      <button data-pm="PING">PING</button>
+    </div>
+
+    <div class="row">
+      <b>WebSocket (optional, uses public echo server)</b><br />
+      <button id="ws-connect">connect</button>
+      <button id="ws-emit">emit socket.io frame</button>
+    </div>
+
+    <iframe id="frame" src="iframe.html"></iframe>
+    <h3>host log</h3>
+    <pre id="log"></pre>
+
+    <script>
+      const log = (m) => (document.getElementById("log").textContent += m + "\n");
+      const frame = document.getElementById("frame");
+      let nonceN = 0;
+
+      document.querySelectorAll("[data-pm]").forEach((b) =>
+        b.addEventListener("click", () => {
+          const nonce = "n" + ++nonceN;
+          const msg = { type: b.dataset.pm, nonce, timestamp: Date.now(), payload: { from: "host" } };
+          frame.contentWindow.postMessage(msg, "*");
+          log("→ " + b.dataset.pm + " (" + nonce + ")");
+        })
+      );
+
+      window.addEventListener("message", (e) => {
+        if (e.source === frame.contentWindow && e.data && e.data.type) {
+          log("← " + e.data.type + (e.data.nonce ? " (" + e.data.nonce + ")" : ""));
+        }
+      });
+
+      let ws = null;
+      let ackId = 0;
+      document.getElementById("ws-connect").addEventListener("click", () => {
+        // Public echo server; URL shaped like socket.io so the polling/ws filter matches loosely.
+        ws = new WebSocket("wss://echo.websocket.events/socket.io/?EIO=4&transport=websocket");
+        ws.addEventListener("open", () => log("ws open"));
+        ws.addEventListener("message", (e) => log("ws ← " + e.data));
+        ws.addEventListener("error", () => log("ws error (echo server offline?)"));
+      });
+      document.getElementById("ws-emit").addEventListener("click", () => {
+        if (!ws || ws.readyState !== 1) return log("ws not open");
+        const frameStr = '42' + (ackId++) + '["submit_job",{"input":"hello","id":"j123"}]';
+        ws.send(frameStr);
+        log("ws → " + frameStr);
+      });
+    </script>
+  </body>
+</html>
