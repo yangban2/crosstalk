@@ -2,6 +2,6 @@
 chrome.devtools.panels.create(
   "Crosstalk",
   null,
-  "panel.html",
+  "src/devtools/panel.html",
   function () { /* panel created */ }
 );
