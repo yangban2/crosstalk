@@ -64,6 +64,17 @@ iframe's origin isn't known in advance. In return:
 Auth-token masking and export are on the roadmap (see DESIGN.md §9). Review the code before
 using it on pages with sensitive data.
 
+Full policy: [PRIVACY.md](PRIVACY.md).
+
+## Packaging for the Chrome Web Store
+
+```
+bash store/build.sh        # → dist/crosstalk-<version>.zip
+```
+
+Listing copy, permission justifications, and the submission checklist live in
+[store/LISTING.md](store/LISTING.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

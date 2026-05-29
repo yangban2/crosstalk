@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Crosstalk: two channels crossing — bidirectional traffic on one timeline -->
+  <rect width="128" height="128" rx="26" fill="#1f2430"/>
+  <!-- timeline base -->
+  <rect x="22" y="60" width="84" height="8" rx="4" fill="#2f3848"/>
+
+  <!-- channel A (postMessage) — amber, flowing right -->
+  <g stroke="#f0a83a" stroke-width="9" stroke-linecap="round" fill="none">
+    <path d="M30 44 H86"/>
+    <path d="M74 32 L90 44 L74 56"/>
+  </g>
+
+  <!-- channel B (socket) — blue, flowing left -->
+  <g stroke="#3a8efe" stroke-width="9" stroke-linecap="round" fill="none">
+    <path d="M98 84 H42"/>
+    <path d="M54 72 L38 84 L54 96"/>
+  </g>
+</svg>
