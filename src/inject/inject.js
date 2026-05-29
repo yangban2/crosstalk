@@ -79,6 +79,20 @@
   // ---- postMessage ---------------------------------------------------------
   const origPostMessage = window.postMessage;
 
+  // Dev tooling and browser-extension chatter floods the message channel with
+  // traffic that has nothing to do with the app. We tag (not drop) it as noise
+  // so the panel can hide it by default but still reveal it on demand.
+  const NOISE_SOURCES = /^(react-devtools|react-devtools-bridge|react-devtools-content-script|@devtools|redux-devtools|vue-devtools|webpackHotUpdate|webpack|metamask|__REACT)/i;
+
+  function isNoise(d) {
+    if (!d || typeof d !== "object") return false;
+    if (typeof d.source === "string" && NOISE_SOURCES.test(d.source)) return true;
+    // React DevTools also uses a bare {source:"react-devtools-*"} shape handled
+    // above; webpack HMR sends {type:"webpack...",...}.
+    if (typeof d.type === "string" && /^webpack/i.test(d.type)) return true;
+    return false;
+  }
+
   window.postMessage = function (message, targetOrigin, transfer) {
     // Never capture or recurse on our own relay frames.
     if (!(message && typeof message === "object" && message[MARKER])) {
@@ -91,6 +105,7 @@
         nonce: message && typeof message === "object" ? message.nonce : undefined,
         data: c.data,
         byteSize: c.size,
+        noise: isNoise(message),
         decoded: true,
       });
     }
@@ -111,6 +126,7 @@
         nonce: d && typeof d === "object" ? d.nonce : undefined,
         data: c.data,
         byteSize: c.size,
+        noise: isNoise(d),
         decoded: true,
       });
     },
@@ -146,6 +162,9 @@
     window.WebSocket = PatchedWS;
   }
 
+  // engine.io heartbeat and no-op frames carry no app meaning — tag as noise.
+  const NOISE_ENGINE = { ping: true, pong: true, noop: true };
+
   function recordSocketFrame(dir, payload, isSio) {
     const raw = typeof payload === "string" ? payload : "[binary " + (payload && payload.byteLength) + "B]";
     const decoded = typeof payload === "string" ? decodeSocketIO(payload) : null;
@@ -160,6 +179,7 @@
       data: decoded ? (decoded.args !== undefined ? decoded.args : decoded.data) : undefined,
       decodedInfo: decoded || undefined,
       decoded: !!(decoded && decoded.decoded),
+      noise: !!(decoded && NOISE_ENGINE[decoded.engineType]),
       byteSize: raw.length,
     });
   }

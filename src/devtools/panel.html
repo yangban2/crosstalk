@@ -14,6 +14,18 @@
       #toolbar input[type=search] { flex: 1; min-width: 140px; padding: 3px 6px; }
       button { font: inherit; padding: 3px 8px; cursor: pointer; }
       label { display: inline-flex; gap: 3px; align-items: center; user-select: none; }
+      #measure {
+        display: flex; align-items: center; gap: 10px; padding: 4px 8px;
+        background: rgba(80,140,255,.12); border-bottom: 1px solid rgba(80,140,255,.35);
+        font-variant-numeric: tabular-nums;
+      }
+      #measure.hidden { display: none; }
+      #measure-text { font-weight: 600; }
+      #measure button { padding: 0 6px; }
+      .measure-hint { font-weight: 400; }
+      tr.range-start td { box-shadow: inset 0 2px 0 #3a7afe; background: rgba(80,140,255,.14); }
+      tr.range-end td { box-shadow: inset 0 -2px 0 #3a7afe; background: rgba(80,140,255,.14); }
+      tr.range-mid td { background: rgba(80,140,255,.07); }
       #wrap { display: flex; height: calc(100vh - 38px); }
       #list { flex: 1; overflow: auto; }
       table { width: 100%; border-collapse: collapse; }
@@ -24,8 +36,13 @@
       tr.pm td.ch { color: #b06b00; }
       tr.sock td.ch { color: #1a73e8; }
       .dir { font-weight: 600; }
-      #detail { width: 42%; min-width: 280px; border-left: 1px solid rgba(128,128,128,.35); overflow: auto; padding: 8px; display: none; }
+      #detail { width: 42%; min-width: 280px; border-left: 1px solid rgba(128,128,128,.35); overflow: auto; display: none; }
       #detail.open { display: block; }
+      #detail-bar {
+        position: sticky; top: 0; display: flex; gap: 6px; justify-content: flex-end;
+        padding: 6px 8px; background: Canvas; border-bottom: 1px solid rgba(128,128,128,.25);
+      }
+      #detail-body { padding: 8px; }
       pre { white-space: pre-wrap; word-break: break-word; margin: 6px 0; }
       .muted { opacity: .6; }
       .count { margin-left: auto; }
@@ -35,11 +52,17 @@
     <div id="toolbar">
       <button id="pause">⏸ Pause</button>
       <button id="clear">🗑 Clear</button>
+      <button id="copy" title="Copy visible rows to clipboard">📋 Copy</button>
       <label><input type="checkbox" id="f-pm" checked /> postMessage</label>
       <label><input type="checkbox" id="f-sock" checked /> socket</label>
+      <label title="Hide React/Redux DevTools chatter, webpack HMR, and engine.io ping/pong"><input type="checkbox" id="f-noise" checked /> hide noise</label>
       <label><input type="checkbox" id="autoscroll" checked /> auto-scroll</label>
       <input type="search" id="search" placeholder="filter event / payload…" />
       <span class="count muted" id="count">0</span>
+    </div>
+    <div id="measure" class="hidden">
+      <span id="measure-text"></span>
+      <button id="measure-clear" title="Clear measurement (Esc)">✕</button>
     </div>
     <div id="wrap">
       <div id="list">
@@ -50,7 +73,13 @@
           <tbody id="rows"></tbody>
         </table>
       </div>
-      <div id="detail"></div>
+      <div id="detail">
+        <div id="detail-bar">
+          <button id="detail-copy" title="Copy this message">📋 Copy message</button>
+          <button id="detail-close" title="Close (Esc)">✕ Close</button>
+        </div>
+        <div id="detail-body"></div>
+      </div>
     </div>
     <script src="panel.js"></script>
   </body>
